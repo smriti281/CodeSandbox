@@ -1,0 +1,162 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_SEATS 50
+
+// Train structure
+typedef struct Train {
+    int trainNumber;
+    char destination[50];
+    int seats[MAX_SEATS];
+    struct Train* next;
+} Train;
+
+// Function prototypes
+Train* createTrain(int trainNumber, const char* destination);
+Train* addTrain(Train* head, int trainNumber, const char* destination);
+void displayTrains(Train* head);
+void reserveSeat(Train* head, int trainNumber, int seatNumber);
+void cancelReservation(Train* head, int trainNumber, int seatNumber);
+
+// Function to create a new train
+Train* createTrain(int trainNumber, const char* destination) {
+    Train* newTrain = (Train*)malloc(sizeof(Train));
+    if (newTrain == NULL) {
+        printf("Memory allocation failed!\n");
+        exit(EXIT_FAILURE);
+    }
+    newTrain->trainNumber = trainNumber;
+    strcpy(newTrain->destination, destination);
+    for (int i = 0; i < MAX_SEATS; i++) {
+        newTrain->seats[i] = 0; // 0 means available, 1 means reserved
+    }
+    newTrain->next = NULL;
+    return newTrain;
+}
+
+// Function to add a new train to the list
+Train* addTrain(Train* head, int trainNumber, const char* destination) {
+    Train* newTrain = createTrain(trainNumber, destination);
+    if (head == NULL) {
+        return newTrain;
+    }
+    Train* current = head;
+    while (current->next != NULL) {
+        current = current->next;
+    }
+    current->next = newTrain;
+    return head;
+}
+
+// Function to display all trains
+void displayTrains(Train* head) {
+    Train* current = head;
+    printf("Train Number\tDestination\tSeats Available\n");
+    while (current != NULL) {
+        int availableSeats = 0;
+        for (int i = 0; i < MAX_SEATS; i++) {
+            if (current->seats[i] == 0) {
+                availableSeats++;
+            }
+        }
+        printf("%d\t\t%s\t\t%d\n", current->trainNumber, current->destination, availableSeats);
+        current = current->next;
+    }
+}
+
+// Function to reserve a seat on a train
+void reserveSeat(Train* head, int trainNumber, int seatNumber) {
+    Train* current = head;
+    while (current != NULL) {
+        if (current->trainNumber == trainNumber) {
+            if (current->seats[seatNumber - 1] == 0) {
+                current->seats[seatNumber - 1] = 1;
+                printf("Seat %d on train %d reserved successfully.\n", seatNumber, trainNumber);
+                return;
+            } else {
+                printf("Seat %d on train %d is already reserved.\n", seatNumber, trainNumber);
+                return;
+            }
+        }
+        current = current->next;
+    }
+    printf("Train with number %d not found.\n", trainNumber);
+}
+
+// Function to cancel a reservation
+void cancelReservation(Train* head, int trainNumber, int seatNumber) {
+    Train* current = head;
+    while (current != NULL) {
+        if (current->trainNumber == trainNumber) {
+            if (current->seats[seatNumber - 1] == 1) {
+                current->seats[seatNumber - 1] = 0;
+                printf("Reservation for seat %d on train %d canceled successfully.\n", seatNumber, trainNumber);
+                return;
+            } else {
+                printf("Seat %d on train %d is not reserved.\n", seatNumber, trainNumber);
+                return;
+            }
+        }
+        current = current->next;
+    }
+    printf("Train with number %d not found.\n", trainNumber);
+}
+
+// Main function
+int main() {
+    Train* head = NULL;
+
+    // Adding some sample trains
+    head = addTrain(head, 101, "New York");
+    head = addTrain(head, 102, "Chicago    ");
+    head = addTrain(head, 103, "Los Angeles");
+
+    int choice, trainNumber, seatNumber;
+
+    do {
+        printf("\nTrain Reservation System\n");
+        printf("1. Display Trains\n");
+        printf("2. Reserve Seat\n");
+        printf("3. Cancel Reservation\n");
+        printf("4. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                displayTrains(head);
+                break;
+            case 2:
+                printf("Enter train number: ");
+                scanf("%d", &trainNumber);
+                printf("Enter seat number: ");
+                scanf("%d", &seatNumber);
+                reserveSeat(head, trainNumber, seatNumber);
+                break;
+            case 3:
+                printf("Enter train number: ");
+                scanf("%d", &trainNumber);
+                printf("Enter seat number: ");
+                scanf("%d", &seatNumber);
+                cancelReservation(head, trainNumber, seatNumber);
+                break;
+            case 4:
+                printf("Exiting program.\n");
+                break;
+            default:
+                printf("Invalid choice. Please enter a valid choice.\n");
+        }
+    } while (choice != 4);
+
+    // Free memory
+    Train* current = head;
+    while (current != NULL) {
+        Train* temp = current;
+        current = current->next;
+        free(temp);
+    }
+
+    return 0;
+}
+
